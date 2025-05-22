@@ -19,7 +19,6 @@ class Produtos(Base):
     nome_produto=Column(String)
     categoria=Column(String)
     preco=Column(DECIMAL)
-    disponivel=Column(Boolean)
     descricao=Column(String)
     valor_venda=Column(DECIMAL)
     cd_barra=Column(String)

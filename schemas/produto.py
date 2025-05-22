@@ -1,4 +1,4 @@
-from datetime import date
+
 from pydantic import BaseModel
 from decimal import Decimal
 
@@ -8,7 +8,6 @@ class ProdutoSchema(BaseModel):
     nome_produto : str
     categoria : str
     preco : float
-    disponivel : bool
     descricao : str
     valor_venda : float
     cd_barra : str
@@ -21,7 +20,6 @@ class ProdutoCriarSchema(BaseModel):
     nome_produto : str
     categoria : str
     preco : Decimal
-    disponivel : bool
     descricao : str
     valor_venda : Decimal
     cd_barra : str
