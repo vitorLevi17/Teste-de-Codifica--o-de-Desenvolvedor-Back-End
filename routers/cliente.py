@@ -1,10 +1,11 @@
 from typing import List
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from validate_docbr import CPF
 from sqlalchemy.orm import Session
 from models import models
 from models.database import SessionLocal
 from schemas.cliente import ClienteSchema,ClienteCriarSchema
+from fastapi import HTTPException,status
 
 router = APIRouter()
 
@@ -26,3 +27,14 @@ def criar_cliente(cliente: ClienteCriarSchema, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(cliente_novo)
     return cliente_novo
+@router.delete('/{cliente_id}')
+def excluir_cliente(cliente_id: int, db: Session = Depends(get_db)):
+    cliente = db.query(models.Cliente).filter(models.Cliente.id == cliente_id).first()
+    if cliente is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Cliente com ID {cliente_id} não encontrado"
+        )
+    db.delete(cliente)
+    db.commit()
+    return {"mensagem": "Cliente deletado com sucesso"}
