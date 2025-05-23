@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from auxiliars import validacoes
 from sqlalchemy.orm import Session
 from models import models
@@ -15,8 +15,21 @@ def get_db():
     finally:
         db.close()
 @router.get('/',response_model=List[ClienteSchema])
-def cliente(db: Session = Depends(get_db)):
-    clientes = db.query(models.Cliente).all()
+def cliente(db: Session = Depends(get_db),skip: int = Query(0, ge=0),
+            limit: int = Query(10, le=100),
+            nome: str = Query(None),
+            email: str = Query(None)
+            ):
+
+    query = db.query(models.Cliente)
+
+    if nome:
+        query = query.filter(models.Cliente.nome.ilike(f"%{nome}%"))
+    if email:
+        query = query.filter(models.Cliente.email.ilike(f"%{email}%"))
+
+    clientes = query.offset(skip).limit(limit).all()
+
     return clientes
 @router.get('/{cliente_id}',response_model=ClienteSchema)
 def cliente_id(cliente_id:int, db: SessionLocal = Depends(get_db)):
