@@ -1,6 +1,5 @@
 from typing import List
 from fastapi import APIRouter, Depends
-from validate_docbr import CPF
 from auxiliars import validacoes
 from sqlalchemy.orm import Session
 from models import models
@@ -28,6 +27,7 @@ def cliente_id(cliente_id:int, db: SessionLocal = Depends(get_db)):
 @router.post('/',response_model=ClienteSchema)
 def criar_cliente(cliente: ClienteCriarSchema, db: Session = Depends(get_db)):
     cliente_novo = models.Cliente(**cliente.dict())
+    validacoes.validar_cliente(cliente_novo,db)
     db.add(cliente_novo)
     db.commit()
     db.refresh(cliente_novo)
