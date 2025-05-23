@@ -35,14 +35,17 @@ def criar_cliente(cliente: ClienteCriarSchema, db: Session = Depends(get_db)):
 @router.put('/{cliente_id}',response_model=ClienteSchema)
 def editar_cliente(cliente_id: int,cliente_put: ClienteCriarSchema, db:Session = Depends(get_db)):
     cliente = db.query(models.Cliente).filter(models.Cliente.id == cliente_id).first()
+
     validacoes.validar_objeto_bd(cliente,cliente_id)
+    cliente_dados_atualizados = cliente_put
+    validacoes.validar_cliente_editar(cliente_dados_atualizados, db, cliente_id=cliente_id)
+
     for key, value in cliente_put.dict().items():
         setattr(cliente,key,value)
 
     db.commit()
     db.refresh(cliente)
     return cliente
-
 @router.delete('/{cliente_id}')
 def excluir_cliente(cliente_id: int, db: Session = Depends(get_db)):
     cliente = db.query(models.Cliente).filter(models.Cliente.id == cliente_id).first()
