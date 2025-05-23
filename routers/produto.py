@@ -27,6 +27,23 @@ def criar_produto(produto: ProdutoCriarSchema,db:Session = Depends(get_db)):
     db.refresh(produto_novo)
     return produto_novo
 
+@router.put('/{produto_id}',response_model=ProdutoSchema)
+def editar_produto(produto_id:int,produto_put:ProdutoCriarSchema,db:Session = Depends(get_db)):
+    produto = db.query(models.Produtos).filter(models.Produtos.id == produto_id).first()
+    if produto is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Produto com ID {produto_id} não encontrado"
+        )
+    for key, value in produto_put.dict().items():
+        setattr(produto,key,value)
+
+    db.commit()
+    db.refresh(produto)
+    return produto
+
+
+
 @router.delete('/{produto_id}')
 def excluir_produto(produto_id: int, db:Session = Depends(get_db)):
     produto = db.query(models.Produtos).filter(models.Produtos.id == produto_id).first()
