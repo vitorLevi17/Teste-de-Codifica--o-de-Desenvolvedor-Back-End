@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from models import models
 from typing import List
 from schemas.produto import ProdutoSchema,ProdutoCriarSchema
+from auxiliars import validacoes
 
 router = APIRouter()
 
@@ -22,11 +23,7 @@ def produto(db: SessionLocal = Depends(get_db)):
 @router.get('/{produto_id}',response_model=ProdutoSchema)
 def produto_id(produto_id:int ,db: SessionLocal = Depends(get_db)):
     produto = db.query(models.Produtos).filter(models.Produtos.id == produto_id).first()
-    if produto is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Produto com ID {produto_id} não encontrado"
-        )
+    validacoes.validar_objeto_bd(produto,produto_id)
     return produto
 
 @router.post('/',response_model=ProdutoSchema)
@@ -40,11 +37,7 @@ def criar_produto(produto: ProdutoCriarSchema,db:Session = Depends(get_db)):
 @router.put('/{produto_id}',response_model=ProdutoSchema)
 def editar_produto(produto_id:int,produto_put:ProdutoCriarSchema,db:Session = Depends(get_db)):
     produto = db.query(models.Produtos).filter(models.Produtos.id == produto_id).first()
-    if produto is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Produto com ID {produto_id} não encontrado"
-        )
+    validacoes.validar_objeto_bd(produto,produto_id)
     for key, value in produto_put.dict().items():
         setattr(produto,key,value)
 
@@ -52,16 +45,10 @@ def editar_produto(produto_id:int,produto_put:ProdutoCriarSchema,db:Session = De
     db.refresh(produto)
     return produto
 
-
-
 @router.delete('/{produto_id}')
 def excluir_produto(produto_id: int, db:Session = Depends(get_db)):
     produto = db.query(models.Produtos).filter(models.Produtos.id == produto_id).first()
-    if produto is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Produto com ID {produto_id} não encontrado"
-        )
+    validacoes.validar_objeto_bd(produto,produto_id)
     db.delete(produto)
     db.commit()
     return {"mensagem": "Produto deletado com sucesso"}
