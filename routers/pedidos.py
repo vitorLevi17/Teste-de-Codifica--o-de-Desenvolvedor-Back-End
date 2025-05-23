@@ -1,9 +1,10 @@
 from typing import List
-from fastapi import APIRouter, Depends,HTTPException,status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from models import models
 from schemas.pedidos import PedidoSchema,CriarPedidoSchema,EditarPedidoSchema
 from models.database import SessionLocal
+from auxiliars import validacoes
 
 router = APIRouter()
 
@@ -21,11 +22,7 @@ def pedidos(db:SessionLocal = Depends(get_db)):
 @router.get('/{pedidos_id}',response_model=PedidoSchema)
 def pedido_id(pedidos_id:int ,db:SessionLocal = Depends(get_db)):
     pedido = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
-    if pedido is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Pedido com ID{pedidos_id} não encontrado"
-        )
+    validacoes.validar_objeto_bd(pedido,pedidos_id)
     return pedido
 @router.post('/',response_model=CriarPedidoSchema)
 def criar_pedido(pedidos: CriarPedidoSchema,db:SessionLocal = Depends(get_db)):
@@ -37,11 +34,7 @@ def criar_pedido(pedidos: CriarPedidoSchema,db:SessionLocal = Depends(get_db)):
 @router.put('/{pedidos_id}',response_model=PedidoSchema)
 def editar_pedido(pedidos_id:int, pedido_put:EditarPedidoSchema, db:Session = Depends(get_db)):
     pedido = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
-    if pedido is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"pedido com ID {pedidos_id} não encontrado"
-        )
+    validacoes.validar_objeto_bd(pedido,pedidos_id)
     for key, value in pedido_put.dict().items():
         setattr(pedido,key,value)
     db.commit()
@@ -50,15 +43,7 @@ def editar_pedido(pedidos_id:int, pedido_put:EditarPedidoSchema, db:Session = De
 @router.delete('/{pedidos_id}')
 def excluir_pedido(pedidos_id: int, db: Session = Depends(get_db)):
     pedidos = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
-    if pedidos is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Cliente com ID {pedidos_id} não encontrado"
-        )
+    validacoes.validar_objeto_bd(pedidos,pedidos_id)
     db.delete(pedidos)
     db.commit()
     return {"mensagem":"Pedido deletado com sucesso"}
-
-
-
-
