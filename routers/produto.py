@@ -19,6 +19,16 @@ def produto(db: SessionLocal = Depends(get_db)):
     produtos = db.query(models.Produtos).all()
     return produtos
 
+@router.get('/{produto_id}',response_model=ProdutoSchema)
+def produto_id(produto_id:int ,db: SessionLocal = Depends(get_db)):
+    produto = db.query(models.Produtos).filter(models.Produtos.id == produto_id).first()
+    if produto is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Produto com ID {produto_id} não encontrado"
+        )
+    return produto
+
 @router.post('/',response_model=ProdutoSchema)
 def criar_produto(produto: ProdutoCriarSchema,db:Session = Depends(get_db)):
     produto_novo = models.Produtos(**produto.dict())

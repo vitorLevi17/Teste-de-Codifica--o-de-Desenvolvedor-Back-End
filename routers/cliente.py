@@ -19,6 +19,15 @@ def get_db():
 def cliente(db: Session = Depends(get_db)):
     clientes = db.query(models.Cliente).all()
     return clientes
+@router.get('/{cliente_id}',response_model=ClienteSchema)
+def cliente_id(cliente_id:int, db: SessionLocal = Depends(get_db)):
+    cliente = db.query(models.Cliente).filter(models.Cliente.id == cliente_id).first()
+    if cliente is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Cliente com ID {cliente_id} não encontrado"
+        )
+    return cliente
 
 @router.post('/',response_model=ClienteSchema)
 def criar_cliente(cliente: ClienteCriarSchema, db: Session = Depends(get_db)):
