@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends,HTTPException,status
 from sqlalchemy.orm import Session
 from models import models
-from schemas.pedidos import PedidoSchema,CriarPedidoSchema
+from schemas.pedidos import PedidoSchema,CriarPedidoSchema,EditarPedidoSchema
 from models.database import SessionLocal
 
 router = APIRouter()
@@ -36,7 +36,19 @@ def criar_pedido(pedidos: CriarPedidoSchema,db:SessionLocal = Depends(get_db)):
     db.commit()
     db.refresh(pedidos)
     return pedidos
-
+@router.put('/{pedidos_id}',response_model=PedidoSchema)
+def editar_pedido(pedidos_id:int, pedido_put:EditarPedidoSchema, db:Session = Depends(get_db)):
+    pedido = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
+    if pedido is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"pedido com ID {pedidos_id} não encontrado"
+        )
+    for key, value in pedido_put.dict().items():
+        setattr(pedido,key,value)
+    db.commit()
+    db.refresh(pedido)
+    return pedido
 @router.delete('/{pedidos_id}')
 def excluir_pedido(pedidos_id: int, db: Session = Depends(get_db)):
     pedidos = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()

@@ -13,10 +13,10 @@ class CriarPedidoSchema(BaseModel):
     quantidade_itens : int
     periodo : str
 
-# class EditarPedidoSchema(BaseModel):
-#     cliente_fk : int
-#     produto_fk : int
-#     quantidade_itens : int
-#     status : str
-#     periodo : str
+class EditarPedidoSchema(BaseModel):
+    cliente_fk : int
+    produto_fk : int
+    quantidade_itens : int
+    status : str
+    periodo : str
 
