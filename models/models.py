@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String,DECIMAL,Boolean,Date
+from sqlalchemy import Column, Integer, String,DECIMAL,ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
@@ -26,3 +27,17 @@ class Produtos(Base):
     estoque_inicial=Column(Integer)
     dt_validade=Column(String)
     imagem=Column(String)
+
+class Pedidos(Base):
+    __tablename__ = 'pedidos'
+
+    id=Column(Integer,primary_key=True,index=True)
+    cliente_fk=Column(Integer,ForeignKey('clientes.id'))
+    produto_fk=Column(Integer,ForeignKey('produtos.id'))
+    quantidade_itens = Column(Integer)
+    status = Column(String)
+    periodo = Column(String)
+
+    cliente = relationship("Cliente")
+    produto = relationship("Produtos")
+
