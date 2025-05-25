@@ -41,3 +41,11 @@ class Pedidos(Base):
     cliente = relationship("Cliente")
     produto = relationship("Produtos")
 
+class Users(Base):
+    __tablename__ = 'usuarios'
+
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String,nullable=False,unique=True)
+    senha = Column(String,nullable=False)
+    nivel = Column(String,nullable=False) #admin / regular
+
