@@ -96,6 +96,8 @@ def editar_pedido(pedidos_id:int, pedido_put:EditarPedidoSchema, db:Session = De
 def excluir_pedido(pedidos_id: int, db: Session = Depends(get_db)):
     pedidos = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
     validacoes.validar_objeto_bd(pedidos,pedidos_id)
+    itens = db.query(Item_Pedido).filter(Item_Pedido.pedido_fk == pedidos_id).all()
     db.delete(pedidos)
+    db.delete(itens)
     db.commit()
     return {"mensagem":"Pedido deletado com sucesso"}
