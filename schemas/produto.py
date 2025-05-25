@@ -14,6 +14,14 @@ class ProdutoSchema(BaseModel):
     imagem : str
     disponivel_s_n : str
 
+class ProdutoSchemaPedido(BaseModel):
+    nome_produto : str
+    categoria : str
+    preco : float
+    descricao : str
+    secao : str
+    imagem : str
+
 class ProdutoCriarSchema(BaseModel):
     nome_produto : str
     categoria : str

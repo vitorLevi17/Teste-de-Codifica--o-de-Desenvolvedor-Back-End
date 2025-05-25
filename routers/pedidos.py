@@ -2,8 +2,8 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from models import models
-from models.models import Pedidos, Produtos,Item_Pedido
-from schemas.pedidos import PedidoSchema,CriarPedidoSchema,EditarPedidoSchema
+from models.models import Pedidos, Produtos, Item_Pedido, Cliente
+from schemas.pedidos import PedidoSchemaList,CriarPedidoSchema,EditarPedidoSchema,PedidoSchema
 from models.database import SessionLocal
 from auxiliars import validacoes
 from auxiliars import validacoes_pedidos
@@ -17,28 +17,33 @@ def get_db():
     finally:
         db.close()
 
-@router.get('/',response_model=List[PedidoSchema])
+@router.get('/',response_model=List[PedidoSchemaList])
 def pedidos(db:SessionLocal = Depends(get_db)):
     pedidos = db.query(models.Pedidos).all()
+    #cliente
+    #produto
     if not pedidos:
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
 
     resultado = []
     for pedido in pedidos:
         itens = db.query(Item_Pedido).filter(Item_Pedido.pedido_fk == pedido.id).all()
+        produtos = db.query(Produtos).join(Item_Pedido).filter(Item_Pedido.pedido_fk == pedido.id).all()
+        cliente = db.query(Cliente).filter(Cliente.id == pedido.cliente_fk).first()
         resultado.append({
             "id": pedido.id,
             "cliente_fk": pedido.cliente_fk,
             "status": pedido.status,
             "periodo": pedido.periodo,
-            "itens": [
-                {"produto_id": item.produto_id_fk, "quantidade": item.quantidade}
-                for item in itens
-        ]
+            "itens": [{"produto_id": item.produto_id_fk, "quantidade": item.quantidade}for item in itens],
+            "produto": [{"nome_produto": produto.nome_produto,"categoria": produto.categoria,
+                     "preco": produto.preco,"descricao": produto.descricao,
+                     "secao": produto.secao,"imagem": produto.imagem} for produto in produtos],
+             "cliente":{"nome": cliente.nome,"telefone": cliente.telefone,"email":cliente.email},
     })
 
     return resultado
-@router.get('/{pedidos_id}',response_model=PedidoSchema)
+@router.get('/{pedidos_id}',response_model=PedidoSchemaList)
 def pedido_id(pedidos_id:int ,db:SessionLocal = Depends(get_db)):
     pedido = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
     validacoes.validar_objeto_bd(pedido, pedidos_id)
@@ -90,7 +95,8 @@ def excluir_pedido(pedidos_id: int, db: Session = Depends(get_db)):
     pedidos = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
     validacoes.validar_objeto_bd(pedidos,pedidos_id)
     itens = db.query(Item_Pedido).filter(Item_Pedido.pedido_fk == pedidos_id).all()
+    for item in itens:
+        db.delete(item)
     db.delete(pedidos)
-    db.delete(itens)
     db.commit()
     return {"mensagem":"Pedido deletado com sucesso"}
