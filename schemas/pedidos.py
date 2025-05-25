@@ -18,7 +18,7 @@ class CriarPedidoSchema(BaseModel):
 
 class EditarPedidoSchema(BaseModel):
     cliente_fk : int
-    produto_fk : int
     status : str
     periodo : str
+    itens: List[ItemPedido]
 

@@ -34,10 +34,8 @@ class Pedidos(Base):
 
     id=Column(Integer,primary_key=True,index=True)
     cliente_fk=Column(Integer,ForeignKey('clientes.id'))
-    #produto_fk=Column(Integer,ForeignKey('produtos.id'))
     status = Column(String)
     periodo = Column(String)
-
     cliente = relationship("Cliente")
     itens = relationship("Item_Pedido", back_populates="pedido")
 
