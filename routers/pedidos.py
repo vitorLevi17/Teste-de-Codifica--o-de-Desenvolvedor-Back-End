@@ -41,8 +41,19 @@ def pedidos(db:SessionLocal = Depends(get_db)):
 @router.get('/{pedidos_id}',response_model=PedidoSchema)
 def pedido_id(pedidos_id:int ,db:SessionLocal = Depends(get_db)):
     pedido = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
-    validacoes.validar_objeto_bd(pedido,pedidos_id)
-    return pedido
+    validacoes.validar_objeto_bd(pedido, pedidos_id)
+    itens = db.query(Item_Pedido).filter(Item_Pedido.pedido_fk == pedidos_id).all()
+    itens_schema = [{"produto_id": item.produto_id_fk, "quantidade": item.quantidade} for item in itens]
+
+    pedido_completo = {
+        "id": pedido.id,
+        "cliente_fk": pedido.cliente_fk,
+        "status": pedido.status,
+        "periodo": pedido.periodo,
+        "itens": itens_schema
+    }
+    return pedido_completo
+
 @router.post('/')
 def criar_pedido(pedidos: CriarPedidoSchema,db:SessionLocal = Depends(get_db)):
 #validações, se objeto é valido e se o estoque é suficiente
