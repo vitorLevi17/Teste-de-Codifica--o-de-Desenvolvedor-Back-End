@@ -56,13 +56,7 @@ def pedido_id(pedidos_id:int ,db:SessionLocal = Depends(get_db)):
 
 @router.post('/')
 def criar_pedido(pedidos: CriarPedidoSchema,db:SessionLocal = Depends(get_db)):
-#validações, se objeto é valido e se o estoque é suficiente
-    for item in pedidos.itens:
-        produto = db.query(Produtos).filter(Produtos.id == item.produto_id).first()
-        if not produto:
-            raise HTTPException(status_code=404, detail=f"Produto {item.produto_id} não encontrado.")
-        if produto.estoque < item.quantidade:
-            raise HTTPException(status_code=400, detail=f"Estoque insuficiente para o produto {item.produto_id}.")
+    validacoes_pedidos.validar_pedido(pedidos,db)
     pedido_post = Pedidos(cliente_fk = pedidos.cliente_fk,
                           status="Em preparação",
                           periodo=pedidos.periodo)
@@ -81,8 +75,7 @@ def criar_pedido(pedidos: CriarPedidoSchema,db:SessionLocal = Depends(get_db)):
         produto.estoque -= item.quantidade
 
     db.commit()
-
-    return  {"message": "Pedido criado com sucesso", "pedido_id": pedido_post.id}
+    return {"message": "Pedido criado com sucesso", "pedido_id": pedido_post.id}
 @router.put('/{pedidos_id}',response_model=PedidoSchema)
 def editar_pedido(pedidos_id:int, pedido_put:EditarPedidoSchema, db:Session = Depends(get_db)):
     pedido = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
