@@ -3,6 +3,7 @@ from jose import JWTError,jwt
 from passlib.context import CryptContext
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from models import models
 from models.database import SessionLocal
@@ -63,18 +64,18 @@ def register(user: UsuarioSchema, db: Session = Depends(get_db)):
     token = create_access_token(data={"sub": user.nome})
     return {"access_token": token, "token_type": "bearer"}
 
-# class RefreshTokenRequest(BaseModel):
-#     token: str
+class RefreshTokenRequest(BaseModel):
+    token: str
 
-# @router.post("/refresh-token", response_model=Token)
-# def refresh_token(data: RefreshTokenRequest):
-#     try:
-#         payload = jwt.decode(data.token, SECRET_KEY, algorithms=[ALGORITHM])
-#         email = payload.get("sub")
-#         if not email:
-#             raise HTTPException(status_code=401, detail="Token inválido")
-#     except JWTError:
-#         raise HTTPException(status_code=401, detail="Token inválido")
-#
-#     new_token = create_access_token(data={"sub": email})
-#     return {"access_token": new_token, "token_type": "bearer"}
+@router.post("/refresh-token", response_model=Token)
+def refresh_token(data: RefreshTokenRequest):
+    try:
+        payload = jwt.decode(data.token, SECRET_KEY, algorithms=[ALGORITHM])
+        nome = payload.get("sub")
+        if not nome:
+            raise HTTPException(status_code=401, detail="Token inválido")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Token inválido")
+
+    new_token = create_access_token(data={"sub": nome})
+    return {"access_token": new_token, "token_type": "bearer"}
