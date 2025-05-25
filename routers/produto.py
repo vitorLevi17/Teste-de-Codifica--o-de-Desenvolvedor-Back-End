@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException,status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from models.database import SessionLocal
 from sqlalchemy.orm import Session
 from models import models
@@ -16,8 +16,22 @@ def get_db():
         db.close()
 
 @router.get('/',response_model=List[ProdutoSchema])
-def produto(db: SessionLocal = Depends(get_db)):
-    produtos = db.query(models.Produtos).all()
+def produto(db: SessionLocal = Depends(get_db),skip: int = Query(0, ge=0),
+    limit: int = Query(10,le=100),
+    categoria: str = Query(None),
+    preco: float = Query(None),
+    disponivel_s_n: str = Query(None)
+            ):
+    query = db.query(models.Produtos)
+
+    if categoria:
+        query = query.filter(models.Produtos.categoria.ilike(f"%{categoria}%"))
+    if preco:
+        query = query.filter(models.Produtos.preco.ilike(f"%{preco}%"))
+    if disponivel_s_n:
+        query = query.filter(models.Produtos.disponivel_s_n.ilike(f"%{disponivel_s_n}%"))
+
+    produtos = query.offset(skip).limit(limit).all()
     return produtos
 
 @router.get('/{produto_id}',response_model=ProdutoSchema)
