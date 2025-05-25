@@ -41,7 +41,6 @@ class Pedidos(Base):
     cliente = relationship("Cliente")
     itens = relationship("Item_Pedido", back_populates="pedido")
 
-
 class Item_Pedido(Base):
     __tablename__ = 'itens_pedidos'
 
@@ -52,7 +51,6 @@ class Item_Pedido(Base):
 
     pedido = relationship("Pedidos", back_populates="itens")
     produto = relationship("Produtos")
-
 class Users(Base):
     __tablename__ = 'usuarios'
 

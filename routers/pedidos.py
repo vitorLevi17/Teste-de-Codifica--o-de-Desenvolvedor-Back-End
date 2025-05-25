@@ -20,7 +20,24 @@ def get_db():
 @router.get('/',response_model=List[PedidoSchema])
 def pedidos(db:SessionLocal = Depends(get_db)):
     pedidos = db.query(models.Pedidos).all()
-    return pedidos
+    if not pedidos:
+        raise HTTPException(status_code=404, detail="Pedido não encontrado")
+
+    resultado = []
+    for pedido in pedidos:
+        itens = db.query(Item_Pedido).filter(Item_Pedido.pedido_fk == pedido.id).all()
+        resultado.append({
+            "id": pedido.id,
+            "cliente_fk": pedido.cliente_fk,
+            "status": pedido.status,
+            "periodo": pedido.periodo,
+            "itens": [
+                {"produto_id": item.produto_id_fk, "quantidade": item.quantidade}
+                for item in itens
+        ]
+    })
+
+    return resultado
 @router.get('/{pedidos_id}',response_model=PedidoSchema)
 def pedido_id(pedidos_id:int ,db:SessionLocal = Depends(get_db)):
     pedido = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
@@ -29,7 +46,7 @@ def pedido_id(pedidos_id:int ,db:SessionLocal = Depends(get_db)):
 @router.post('/')
 def criar_pedido(pedidos: CriarPedidoSchema,db:SessionLocal = Depends(get_db)):
 #validações, se objeto é valido e se o estoque é suficiente
-    for item in  pedidos.itens:
+    for item in pedidos.itens:
         produto = db.query(Produtos).filter(Produtos.id == item.produto_id).first()
         if not produto:
             raise HTTPException(status_code=404, detail=f"Produto {item.produto_id} não encontrado.")
