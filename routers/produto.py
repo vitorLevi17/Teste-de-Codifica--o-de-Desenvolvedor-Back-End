@@ -38,7 +38,11 @@ def criar_produto(produto: ProdutoCriarSchema,db:Session = Depends(get_db)):
 @router.put('/{produto_id}',response_model=ProdutoSchema)
 def editar_produto(produto_id:int,produto_put:ProdutoCriarSchema,db:Session = Depends(get_db)):
     produto = db.query(models.Produtos).filter(models.Produtos.id == produto_id).first()
+
     validacoes.validar_objeto_bd(produto,produto_id)
+    produto_atualizado = produto_put
+    validacoes.validar_produto_editar(produto_atualizado,db,produto_id)
+
     for key, value in produto_put.dict().items():
         setattr(produto,key,value)
 
