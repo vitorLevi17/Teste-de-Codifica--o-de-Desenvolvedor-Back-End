@@ -1,10 +1,12 @@
 from typing import List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from models import models
+from models.models import Pedidos, Produtos,Item_Pedido
 from schemas.pedidos import PedidoSchema,CriarPedidoSchema,EditarPedidoSchema
 from models.database import SessionLocal
 from auxiliars import validacoes
+from auxiliars import validacoes_pedidos
 
 router = APIRouter()
 
@@ -24,13 +26,35 @@ def pedido_id(pedidos_id:int ,db:SessionLocal = Depends(get_db)):
     pedido = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
     validacoes.validar_objeto_bd(pedido,pedidos_id)
     return pedido
-@router.post('/',response_model=CriarPedidoSchema)
+@router.post('/')
 def criar_pedido(pedidos: CriarPedidoSchema,db:SessionLocal = Depends(get_db)):
-    pedidos = models.Pedidos(**pedidos.dict(),status="Em preparação")
-    db.add(pedidos)
+#validações, se objeto é valido e se o estoque é suficiente
+    for item in  pedidos.itens:
+        produto = db.query(Produtos).filter(Produtos.id == item.produto_id).first()
+        if not produto:
+            raise HTTPException(status_code=404, detail=f"Produto {item.produto_id} não encontrado.")
+        if produto.estoque < item.quantidade:
+            raise HTTPException(status_code=400, detail=f"Estoque insuficiente para o produto {item.produto_id}.")
+    pedido_post = Pedidos(cliente_fk = pedidos.cliente_fk,
+                          status="Em preparação",
+                          periodo=pedidos.periodo)
+    db.add(pedido_post)
     db.commit()
-    db.refresh(pedidos)
-    return pedidos
+    db.refresh(pedido_post)
+
+    for item in pedidos.itens:
+        item_pedido = Item_Pedido(
+            pedido_fk = pedido_post.id,
+            produto_id_fk = item.produto_id,
+            quantidade = item.quantidade
+        )
+        db.add(item_pedido)
+        produto = db.query(Produtos).filter(Produtos.id == item.produto_id).first()
+        produto.estoque -= item.quantidade
+
+    db.commit()
+
+    return  {"message": "Pedido criado com sucesso", "pedido_id": pedido_post.id}
 @router.put('/{pedidos_id}',response_model=PedidoSchema)
 def editar_pedido(pedidos_id:int, pedido_put:EditarPedidoSchema, db:Session = Depends(get_db)):
     pedido = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
