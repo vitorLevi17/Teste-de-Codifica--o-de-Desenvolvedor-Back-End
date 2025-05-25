@@ -9,7 +9,7 @@ class ProdutoSchema(BaseModel):
     valor_venda : float
     cd_barra : str
     secao : str
-    estoque_inicial : int
+    estoque : int
     dt_validade : str
     imagem : str
     disponivel_s_n : str
@@ -22,7 +22,7 @@ class ProdutoCriarSchema(BaseModel):
     valor_venda : Decimal
     cd_barra : str
     secao : str
-    estoque_inicial : int
+    estoque : int
     dt_validade : str
     imagem : str
     disponivel_s_n : str

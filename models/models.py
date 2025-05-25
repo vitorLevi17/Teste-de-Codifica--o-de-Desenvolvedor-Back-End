@@ -24,7 +24,7 @@ class Produtos(Base):
     valor_venda=Column(DECIMAL)
     cd_barra=Column(String)
     secao=Column(String)
-    estoque_inicial=Column(Integer)
+    estoque=Column(Integer)
     dt_validade=Column(String)
     imagem=Column(String)
     disponivel_s_n=Column(String)
@@ -34,12 +34,23 @@ class Pedidos(Base):
 
     id=Column(Integer,primary_key=True,index=True)
     cliente_fk=Column(Integer,ForeignKey('clientes.id'))
-    produto_fk=Column(Integer,ForeignKey('produtos.id'))
-    quantidade_itens = Column(Integer)
+    #produto_fk=Column(Integer,ForeignKey('produtos.id'))
     status = Column(String)
     periodo = Column(String)
 
     cliente = relationship("Cliente")
+    itens = relationship("Item_Pedido", back_populates="pedido")
+
+
+class Item_Pedido(Base):
+    __tablename__ = 'itens_pedidos'
+
+    id=Column(Integer,primary_key=True,index=True)
+    pedido_fk=Column(Integer,ForeignKey('pedidos.id'))
+    produto_id_fk = Column(Integer, ForeignKey('produtos.id'))
+    quantidade = Column(Integer)
+
+    pedido = relationship("Pedidos", back_populates="itens")
     produto = relationship("Produtos")
 
 class Users(Base):

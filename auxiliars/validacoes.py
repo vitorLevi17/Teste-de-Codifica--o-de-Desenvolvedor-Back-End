@@ -86,7 +86,7 @@ def validar_produto(produto,db):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Codigo de barras já cadastrado."
         )
-    if produto.estoque_inicial <= 0:
+    if produto.estoque <= 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"O numero de itens do estoque deve ser maior ou igual a 1."
@@ -136,10 +136,10 @@ def validar_produto_editar(produto,db, produto_id=None):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Codigo de barras já cadastrado."
         )
-    if produto.estoque_inicial <= 0:
+    if produto.estoque < 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"O numero de itens do estoque deve ser maior ou igual a 1."
+            detail=f"O numero de itens do estoque deve ser maior que 1."
         )
     if not re.match(padrao_dt,produto.dt_validade):
         raise HTTPException(
