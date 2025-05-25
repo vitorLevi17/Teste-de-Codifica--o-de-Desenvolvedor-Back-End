@@ -27,6 +27,7 @@ class Produtos(Base):
     estoque_inicial=Column(Integer)
     dt_validade=Column(String)
     imagem=Column(String)
+    disponivel_s_n=Column(String)
 
 class Pedidos(Base):
     __tablename__ = 'pedidos'

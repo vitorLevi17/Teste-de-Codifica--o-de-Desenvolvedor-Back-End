@@ -107,6 +107,11 @@ def validar_produto(produto,db):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"O formato da imagem deve ser jpeg ou png."
         )
+    if produto.disponivel_s_n not in ["Sim","Não"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"As respostas disponiveis para esse campo são 'Sim' ou 'Não'."
+        )
 def validar_produto_editar(produto,db, produto_id=None):
     padrao_dt = r'^[0-9]{2}/[0-9]{2}/[0-9]{4}$'
     padrao_img = r'^[\w\.-]+\.(png|jpg|jpeg|)$'
@@ -151,4 +156,9 @@ def validar_produto_editar(produto,db, produto_id=None):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"O formato da imagem deve ser jpeg,jpg ou png."
+        )
+    if produto.disponivel_s_n not in ["Sim","Não"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"As respostas disponiveis para esse campo são 'Sim' ou 'Não'."
         )

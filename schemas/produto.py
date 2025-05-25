@@ -15,6 +15,7 @@ class ProdutoSchema(BaseModel):
     estoque_inicial : int
     dt_validade : str
     imagem : str
+    disponivel_s_n : str
 
 class ProdutoCriarSchema(BaseModel):
     nome_produto : str
@@ -27,3 +28,4 @@ class ProdutoCriarSchema(BaseModel):
     estoque_inicial : int
     dt_validade : str
     imagem : str
+    disponivel_s_n : str
