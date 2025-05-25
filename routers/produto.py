@@ -29,6 +29,7 @@ def produto_id(produto_id:int ,db: SessionLocal = Depends(get_db)):
 @router.post('/',response_model=ProdutoSchema)
 def criar_produto(produto: ProdutoCriarSchema,db:Session = Depends(get_db)):
     produto_novo = models.Produtos(**produto.dict())
+    validacoes.validar_produto(produto, db)
     db.add(produto_novo)
     db.commit()
     db.refresh(produto_novo)
