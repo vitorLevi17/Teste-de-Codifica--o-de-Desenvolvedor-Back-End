@@ -1,8 +1,9 @@
 from sqlalchemy import Column, Integer, String,DECIMAL,ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-
+#Importar essas tabelas para o banco
 Base = declarative_base()
+
 
 class Cliente(Base):
     __tablename__ = 'clientes'
@@ -55,5 +56,5 @@ class Users(Base):
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String,nullable=False,unique=True)
     senha = Column(String,nullable=False)
-    nivel = Column(String,nullable=False) #admin / regular
+    nivel = Column(String,nullable=False) #Esse campo deve conter apenas os valores :admin / regular
 
