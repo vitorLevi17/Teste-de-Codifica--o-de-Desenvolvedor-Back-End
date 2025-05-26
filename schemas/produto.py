@@ -1,5 +1,9 @@
 from pydantic import BaseModel
 from decimal import Decimal
+""" 
+    Schema para produtos e sua exibição em pedidos
+"""
+#Para exibir produtos
 class ProdutoSchema(BaseModel):
     id : int
     nome_produto : str
@@ -14,6 +18,7 @@ class ProdutoSchema(BaseModel):
     imagem : str
     disponivel_s_n : str
 
+#Para criação e exibição de pedido
 class ProdutoSchemaPedido(BaseModel):
     nome_produto : str
     categoria : str
@@ -22,6 +27,7 @@ class ProdutoSchemaPedido(BaseModel):
     secao : str
     imagem : str
 
+#Schema para criar produto
 class ProdutoCriarSchema(BaseModel):
     nome_produto : str
     categoria : str
