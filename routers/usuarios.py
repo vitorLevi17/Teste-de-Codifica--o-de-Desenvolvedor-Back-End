@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from models import models
 from models.database import SessionLocal
 from schemas.usuarios import UsuarioSchema, Token
+from auxiliars.usuario_token import get_current_user_admin
 
 router = APIRouter()
 
@@ -50,7 +51,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     return {"access_token": token, "token_type": "bearer"}
 
 @router.post("/register", response_model=Token)
-def register(user: UsuarioSchema, db: Session = Depends(get_db)):
+def register(user: UsuarioSchema, db: Session = Depends(get_db),
+             current_user: models.Users = Depends(get_current_user_admin)):
     existing = db.query(models.Users).filter(models.Users.nome == user.nome).first()
     if existing:
         raise HTTPException(status_code=400, detail="Nome já registrado")
@@ -66,7 +68,6 @@ def register(user: UsuarioSchema, db: Session = Depends(get_db)):
 
 class RefreshTokenRequest(BaseModel):
     token: str
-
 @router.post("/refresh-token", response_model=Token)
 def refresh_token(data: RefreshTokenRequest):
     try:
