@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from models import models
 from models.database import SessionLocal
 from schemas.cliente import ClienteSchema,ClienteCriarSchema
+from auxiliars.usuario_token import get_current_user
 
 router = APIRouter()
 
@@ -18,7 +19,8 @@ def get_db():
 def cliente(db: Session = Depends(get_db),skip: int = Query(0, ge=0),
             limit: int = Query(10, le=100),
             nome: str = Query(None),
-            email: str = Query(None)
+            email: str = Query(None),
+            current_user: models.Users = Depends(get_current_user)
             ):
 
     query = db.query(models.Cliente)
@@ -32,13 +34,15 @@ def cliente(db: Session = Depends(get_db),skip: int = Query(0, ge=0),
 
     return clientes
 @router.get('/{cliente_id}',response_model=ClienteSchema)
-def cliente_id(cliente_id:int, db: SessionLocal = Depends(get_db)):
+def cliente_id(cliente_id:int, db: SessionLocal = Depends(get_db),
+               current_user: models.Users = Depends(get_current_user)):
     cliente = db.query(models.Cliente).filter(models.Cliente.id == cliente_id).first()
     validacoes.validar_objeto_bd(cliente,cliente_id)
     return cliente
 
 @router.post('/',response_model=ClienteSchema)
-def criar_cliente(cliente: ClienteCriarSchema, db: Session = Depends(get_db)):
+def criar_cliente(cliente: ClienteCriarSchema, db: Session = Depends(get_db),
+                  current_user: models.Users = Depends(get_current_user)):
     cliente_novo = models.Cliente(**cliente.dict())
     validacoes.validar_cliente(cliente_novo,db)
     db.add(cliente_novo)
@@ -46,7 +50,8 @@ def criar_cliente(cliente: ClienteCriarSchema, db: Session = Depends(get_db)):
     db.refresh(cliente_novo)
     return cliente_novo
 @router.put('/{cliente_id}',response_model=ClienteSchema)
-def editar_cliente(cliente_id: int,cliente_put: ClienteCriarSchema, db:Session = Depends(get_db)):
+def editar_cliente(cliente_id: int,cliente_put: ClienteCriarSchema, db:Session = Depends(get_db),
+                   current_user: models.Users = Depends(get_current_user)):
     cliente = db.query(models.Cliente).filter(models.Cliente.id == cliente_id).first()
 
     validacoes.validar_objeto_bd(cliente,cliente_id)
@@ -60,7 +65,8 @@ def editar_cliente(cliente_id: int,cliente_put: ClienteCriarSchema, db:Session =
     db.refresh(cliente)
     return cliente
 @router.delete('/{cliente_id}')
-def excluir_cliente(cliente_id: int, db: Session = Depends(get_db)):
+def excluir_cliente(cliente_id: int, db: Session = Depends(get_db),
+                    current_user: models.Users = Depends(get_current_user)):
     cliente = db.query(models.Cliente).filter(models.Cliente.id == cliente_id).first()
     validacoes.validar_objeto_bd(cliente, cliente_id)
     db.delete(cliente)
