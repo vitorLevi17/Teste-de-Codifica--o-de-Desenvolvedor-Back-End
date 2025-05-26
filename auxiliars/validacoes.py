@@ -7,7 +7,7 @@ def validar_objeto_bd(objeto,objeto_id):
     if objeto is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"ID {objeto_id} não encontrado"
+            detail=f"ID {objeto_id} não foi encontrado"
         )
 def validar_cliente(cliente,db):
     valida_cpf = CPF()

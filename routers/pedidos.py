@@ -7,6 +7,7 @@ from schemas.pedidos import PedidoSchemaList,CriarPedidoSchema,EditarPedidoSchem
 from models.database import SessionLocal
 from auxiliars import validacoes
 from auxiliars import validacoes_pedidos
+from auxiliars.usuario_token import get_current_user
 
 router = APIRouter()
 
@@ -22,7 +23,8 @@ def pedidos(db:SessionLocal = Depends(get_db),skip: int = Query(0, ge=0),
             limit: int = Query(10,le=100),
             periodo: str=Query(None),
             status: str=Query(None),
-            id_cliente: int=Query(None)):
+            id_cliente: int=Query(None),
+            current_user: models.Users = Depends(get_current_user)):
     query_pedidos = db.query(models.Pedidos)
     if periodo:
         query_pedidos = query_pedidos.filter(models.Pedidos.periodo.ilike(f"%{periodo}%"))
@@ -53,11 +55,12 @@ def pedidos(db:SessionLocal = Depends(get_db),skip: int = Query(0, ge=0),
     })
     return resultado
 @router.get('/{pedidos_id}',response_model=PedidoSchemaList)
-def pedido_id(pedidos_id:int ,db:SessionLocal = Depends(get_db)):
+def pedido_id(pedidos_id:int ,db:SessionLocal = Depends(get_db),
+              current_user: models.Users = Depends(get_current_user)):
     pedido = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
+    validacoes.validar_objeto_bd(pedido, pedidos_id)
     produtos = db.query(Produtos).join(Item_Pedido).filter(Item_Pedido.pedido_fk == pedidos_id).all()
     cliente = db.query(Cliente).filter(Cliente.id == pedido.cliente_fk).first()
-    validacoes.validar_objeto_bd(pedido, pedidos_id)
     itens = db.query(Item_Pedido).filter(Item_Pedido.pedido_fk == pedidos_id).all()
 
     pedido_completo = {
@@ -74,7 +77,8 @@ def pedido_id(pedidos_id:int ,db:SessionLocal = Depends(get_db)):
     return pedido_completo
 
 @router.post('/')
-def criar_pedido(pedidos: CriarPedidoSchema,db:SessionLocal = Depends(get_db)):
+def criar_pedido(pedidos: CriarPedidoSchema,db:SessionLocal = Depends(get_db),
+                 current_user: models.Users = Depends(get_current_user)):
     validacoes_pedidos.validar_pedido(pedidos,db)
     pedido_post = Pedidos(cliente_fk = pedidos.cliente_fk,
                           status="Em preparação",
@@ -96,7 +100,8 @@ def criar_pedido(pedidos: CriarPedidoSchema,db:SessionLocal = Depends(get_db)):
     db.commit()
     return {"message": "Pedido criado com sucesso", "pedido_id": pedido_post.id}
 @router.put('/{pedidos_id}', response_model=PedidoSchema)
-def editar_pedido(pedidos_id: int, pedido_put: EditarPedidoSchema, db: Session = Depends(get_db)):
+def editar_pedido(pedidos_id: int, pedido_put: EditarPedidoSchema, db: Session = Depends(get_db),
+                  current_user: models.Users = Depends(get_current_user)):
     pedido = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
     validacoes.validar_objeto_bd(pedido, pedidos_id)
     validacoes_pedidos.validar_pedido(pedido_put,db)
@@ -119,7 +124,8 @@ def editar_pedido(pedidos_id: int, pedido_put: EditarPedidoSchema, db: Session =
     db.refresh(pedido)
     return pedido
 @router.delete('/{pedidos_id}')
-def excluir_pedido(pedidos_id: int, db: Session = Depends(get_db)):
+def excluir_pedido(pedidos_id: int, db: Session = Depends(get_db),
+                   current_user: models.Users = Depends(get_current_user)):
     pedidos = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
     validacoes.validar_objeto_bd(pedidos,pedidos_id)
     itens = db.query(Item_Pedido).filter(Item_Pedido.pedido_fk == pedidos_id).all()
