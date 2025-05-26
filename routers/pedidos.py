@@ -95,12 +95,26 @@ def criar_pedido(pedidos: CriarPedidoSchema,db:SessionLocal = Depends(get_db)):
 
     db.commit()
     return {"message": "Pedido criado com sucesso", "pedido_id": pedido_post.id}
-@router.put('/{pedidos_id}',response_model=PedidoSchema)
-def editar_pedido(pedidos_id:int, pedido_put:EditarPedidoSchema, db:Session = Depends(get_db)):
+@router.put('/{pedidos_id}', response_model=PedidoSchema)
+def editar_pedido(pedidos_id: int, pedido_put: EditarPedidoSchema, db: Session = Depends(get_db)):
     pedido = db.query(models.Pedidos).filter(models.Pedidos.id == pedidos_id).first()
-    validacoes.validar_objeto_bd(pedido,pedidos_id)
-    for key, value in pedido_put.dict().items():
-        setattr(pedido,key,value)
+    validacoes.validar_objeto_bd(pedido, pedidos_id)
+    validacoes_pedidos.validar_pedido(pedido_put,db)
+
+    pedido.cliente_fk = pedido_put.cliente_fk
+    pedido.status = pedido_put.status
+    pedido.periodo = pedido_put.periodo
+
+    db.query(models.Item_Pedido).filter(models.Item_Pedido.pedido_fk == pedidos_id).delete()
+
+    for item in pedido_put.itens:
+        novo_item = models.Item_Pedido(
+            pedido_fk=pedidos_id,
+            produto_id_fk=item.produto_id,
+            quantidade=item.quantidade
+        )
+        db.add(novo_item)
+
     db.commit()
     db.refresh(pedido)
     return pedido
