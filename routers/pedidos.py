@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,Query
 from sqlalchemy.orm import Session
 from models import models
 from models.models import Pedidos, Produtos, Item_Pedido, Cliente
@@ -18,12 +18,22 @@ def get_db():
         db.close()
 
 @router.get('/',response_model=List[PedidoSchemaList])
-def pedidos(db:SessionLocal = Depends(get_db)):
-    pedidos = db.query(models.Pedidos).all()
-    #cliente
-    #produto
-    if not pedidos:
-        raise HTTPException(status_code=404, detail="Pedido não encontrado")
+def pedidos(db:SessionLocal = Depends(get_db),skip: int = Query(0, ge=0),
+            limit: int = Query(10,le=100),
+            periodo: str=Query(None),
+            status: str=Query(None),
+            id_cliente: int=Query(None)):
+    query_pedidos = db.query(models.Pedidos)
+    if periodo:
+        query_pedidos = query_pedidos.filter(models.Pedidos.periodo.ilike(f"%{periodo}%"))
+    if id_cliente:
+        query_pedidos = query_pedidos.filter(Pedidos.cliente_fk == id_cliente)
+    if status:
+        query_pedidos = query_pedidos.filter(models.Pedidos.status.ilike(f"%{status}%"))
+
+    query = query_pedidos.offset(skip).limit(limit)
+
+    pedidos = query.all()
 
     resultado = []
     for pedido in pedidos:
@@ -41,7 +51,6 @@ def pedidos(db:SessionLocal = Depends(get_db)):
                      "secao": produto.secao,"imagem": produto.imagem} for produto in produtos],
              "cliente":{"nome": cliente.nome,"telefone": cliente.telefone,"email":cliente.email},
     })
-
     return resultado
 @router.get('/{pedidos_id}',response_model=PedidoSchemaList)
 def pedido_id(pedidos_id:int ,db:SessionLocal = Depends(get_db)):
